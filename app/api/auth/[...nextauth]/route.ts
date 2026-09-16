@@ -1,24 +1,28 @@
-import NextAuth from "next-auth"
+import NextAuth, { AuthOptions } from "next-auth"
 import AzureADProvider from "next-auth/providers/azure-ad"
 
-const handler = NextAuth({
+export const authOptions: AuthOptions = {
   providers: [
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID!,
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
       tenantId: process.env.AZURE_AD_TENANT_ID!,
+      authorization: {
+        params: {
+          scope: "openid profile email User.Read",
+        },
+      },
     }),
   ],
   callbacks: {
-    async signIn({ account, profile }) {
-      // Only allow @prodify.com accounts
-      const email = (profile as any)?.email || (profile as any)?.preferred_username || ""
+    async signIn({ account, profile }: any) {
+      const email = profile?.email || profile?.preferred_username || ""
       return email.endsWith("@prodify.com")
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       return session
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account }: any) {
       if (account) {
         token.accessToken = account.access_token
       }
@@ -29,6 +33,8 @@ const handler = NextAuth({
     signIn: "/login",
     error: "/login",
   },
-})
+  debug: true,
+}
 
+const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }
