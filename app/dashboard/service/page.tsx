@@ -2,6 +2,7 @@
 import { useSession, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface PeriodStats {
   label: string
@@ -216,9 +217,7 @@ export default function ServiceDashboard() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">P</span>
-            </div>
+            <Image src="/logo.png" alt="Prodify Software" width={44} height={44} priority />
             <div>
               <h1 className="font-bold text-gray-900 text-lg">Prodify Reports</h1>
               <p className="text-xs text-gray-400">דשבורד שירות לקוחות — helsinki@prodify.com</p>

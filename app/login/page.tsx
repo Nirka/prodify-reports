@@ -1,4 +1,5 @@
 "use client"
+import Image from "next/image"
 import { signIn } from "next-auth/react"
 
 export default function LoginPage() {
@@ -6,9 +7,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-700">
       <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md text-center">
         <div className="mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">P</span>
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Prodify Software"
+            width={128}
+            height={128}
+            priority
+            className="mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-gray-900">Prodify Reports</h1>
           <p className="text-gray-500 mt-2">דשבורד ניהולי פנימי</p>
         </div>
