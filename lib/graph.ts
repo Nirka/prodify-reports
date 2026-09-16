@@ -293,7 +293,7 @@ export async function getServiceStats(): Promise<ServiceStats> {
 
   return {
     generatedAt: new Date().toISOString(),
-    yesterday: computeStats("אתמול", filterAfter(inboxMessages, yesterdayDate), filterAfter(sentMessages, yesterdayDate)),
+    yesterday: computeStats("היום ואתמול", filterAfter(inboxMessages, yesterdayDate), filterAfter(sentMessages, yesterdayDate)),
     week: computeStats("7 ימים אחרונים", filterAfter(inboxMessages, weekDate), filterAfter(sentMessages, weekDate)),
     month: computeStats("22 ימי עבודה אחרונים", inboxMessages, sentMessages),
   }
