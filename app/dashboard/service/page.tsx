@@ -172,7 +172,7 @@ export default function ServiceDashboard() {
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
-        signOut({ callbackUrl: "/login?reason=idle" })
+        signOut({ callbackUrl: "/logout" })}
       }, IDLE_TIMEOUT_MS)
     }
     const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"]
@@ -266,7 +266,7 @@ export default function ServiceDashboard() {
               {dark ? "☀️" : "🌙"}
             </button>
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+             onClick={() => signOut({ callbackUrl: "/logout" })}
               className={`text-sm border rounded-lg px-3 py-1.5 transition-colors ${logoutBtn}`}
             >
               יציאה
