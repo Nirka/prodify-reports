@@ -24,28 +24,24 @@ const authOptions: AuthOptions = {
       const email = profile?.email || profile?.preferred_username || ""
       return email.endsWith("@prodify.com")
     },
-   async jwt({ token, account }: any) {
-  if (account) {
-    // Store issuedAt only — never expose Graph token to client
-    token.issuedAt = Date.now()
-  }
-  return token
-},
+    async jwt({ token, account }: any) {
+      if (account) {
+        token.issuedAt = Date.now()
+      }
+      return token
+    },
     async session({ session, token }: any) {
-  // Only expose safe fields to the client — no tokens
-  session.issuedAt = token.issuedAt
-  session.user = {
-    name: token.name,
-    email: token.email,
-    image: token.picture,
-  }
-  return session
+      session.issuedAt = token.issuedAt
+      session.user = {
+        name: token.name,
+        email: token.email,
+        image: token.picture,
+      }
+      return session
+    },
   },
   events: {
-    async signOut({ token }: any) {
-      // After NextAuth clears its cookie, we also need to clear Microsoft session
-      // This is handled client-side via the logout page redirect
-    },
+    async signOut({}: any) {},
   },
   pages: {
     signIn: "/login",
