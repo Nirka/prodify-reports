@@ -1,9 +1,10 @@
 "use client"
 import { useSession, signOut } from "next-auth/react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { useIdleTimeout } from "@/components/useIdleTimeout"
+
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000
 
 interface PeriodStats {
   label: string
@@ -36,14 +37,11 @@ function formatMinutes(min: number | null): string {
 
 function PeriodPanel({ stats, isHighlight }: { stats: PeriodStats; isHighlight?: boolean }) {
   const maxClient = stats.byClient[0]?.count || 1
-
   return (
     <div className={`rounded-2xl p-6 ${isHighlight ? "bg-blue-50 border-2 border-blue-200" : "bg-white border border-gray-100"} shadow-sm`}>
       <h2 className={`text-lg font-bold mb-5 ${isHighlight ? "text-blue-800" : "text-gray-700"}`}>
         {isHighlight && "⭐ "}{stats.label}
       </h2>
-
-      {/* Volume metrics */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-white rounded-xl p-4 text-center shadow-sm">
           <div className="text-2xl font-bold text-blue-600">{stats.inbound}</div>
@@ -64,8 +62,6 @@ function PeriodPanel({ stats, isHighlight }: { stats: PeriodStats; isHighlight?:
           <div className="text-xs text-gray-500 mt-1">ללא מענה</div>
         </div>
       </div>
-
-      {/* Quality metrics */}
       <div className="bg-gray-50 rounded-xl p-4 mb-5">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">זמני תגובה</div>
         <div className="grid grid-cols-3 gap-3 text-center">
@@ -85,8 +81,6 @@ function PeriodPanel({ stats, isHighlight }: { stats: PeriodStats; isHighlight?:
           </div>
         </div>
       </div>
-
-      {/* By client */}
       {stats.byClient.length > 0 && (
         <div className="mb-5">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">פניות לפי לקוח</div>
@@ -98,18 +92,13 @@ function PeriodPanel({ stats, isHighlight }: { stats: PeriodStats; isHighlight?:
                   <span className="font-semibold text-gray-900">{c.count}</span>
                 </div>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-400 rounded-full"
-                    style={{ width: `${(c.count / maxClient) * 100}%` }}
-                  />
+                  <div className="h-full bg-blue-400 rounded-full" style={{ width: `${(c.count / maxClient) * 100}%` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* By agent */}
       {stats.byAgent.length > 0 && (
         <div className="mb-5">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">עומס נציגים</div>
@@ -123,8 +112,6 @@ function PeriodPanel({ stats, isHighlight }: { stats: PeriodStats; isHighlight?:
           </div>
         </div>
       )}
-
-      {/* Top subjects */}
       {stats.topSubjects.length > 0 && (
         <div>
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">נושאים נפוצים</div>
@@ -148,14 +135,27 @@ export default function ServiceDashboard() {
   const [stats, setStats] = useState<ServiceStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // Step 2: Idle timeout — signs out after 30 min of inactivity
-  useIdleTimeout()
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login")
+    if (status !== "authenticated") return
+    const reset = () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => {
+        signOut({ callbackUrl: "/login?reason=idle" })
+      }, IDLE_TIMEOUT_MS)
     }
+    const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"]
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }))
+    reset()
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      events.forEach((e) => window.removeEventListener(e, reset))
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (status === "unauthenticated") router.push("/login")
   }, [status, router])
 
   useEffect(() => {
@@ -190,10 +190,7 @@ export default function ServiceDashboard() {
           <div className="text-red-500 text-4xl mb-3">⚠️</div>
           <h2 className="font-bold text-red-700 mb-2">שגיאה בטעינת הנתונים</h2>
           <p className="text-sm text-red-600">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700"
-          >
+          <button onClick={() => window.location.reload()} className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700">
             נסה שוב
           </button>
         </div>
@@ -205,7 +202,6 @@ export default function ServiceDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -229,8 +225,6 @@ export default function ServiceDashboard() {
           </div>
         </div>
       </header>
-
-      {/* Nav tabs */}
       <div className="bg-white border-b border-gray-200 px-6">
         <div className="max-w-7xl mx-auto flex gap-6">
           <button className="py-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600">
@@ -244,8 +238,6 @@ export default function ServiceDashboard() {
           </button>
         </div>
       </div>
-
-      {/* Summary bar */}
       {stats && (
         <div className="bg-blue-700 text-white px-6 py-3">
           <div className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
@@ -258,8 +250,6 @@ export default function ServiceDashboard() {
           </div>
         </div>
       )}
-
-      {/* Main content */}
       {stats && (
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
