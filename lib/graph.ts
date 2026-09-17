@@ -12,7 +12,7 @@ async function fetchMessagesForPeriod(afterDate: string): Promise<any[]> {
   return messages
 }
 
-async function fetchSentForPeriod(afterDate: string): Promise<any[]> {
+export async function fetchSentForPeriod(afterDate: string): Promise<any[]> {
   const messages: any[] = []
   let url = `/users/${MAILBOX}/mailFolders/sentItems/messages?$top=50&$select=id,subject,from,toRecipients,receivedDateTime,conversationId,sender&$filter=receivedDateTime ge ${afterDate}&$orderby=receivedDateTime desc`
 
