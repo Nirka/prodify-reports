@@ -1,3 +1,8 @@
+// Add import at the top
+import { useIdleTimeout } from "@/components/useIdleTimeout"
+
+// Add inside ServiceDashboard() function, right after the useState declarations
+useIdleTimeout()
 "use client"
 import { useSession, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
