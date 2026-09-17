@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { getServiceStats } from "@/lib/graph"
 
+export const maxDuration = 60 // Vercel max for hobby plan
+
 export async function GET() {
   const session = await getServerSession()
   if (!session) {
