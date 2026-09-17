@@ -24,18 +24,22 @@ const authOptions: AuthOptions = {
       const email = profile?.email || profile?.preferred_username || ""
       return email.endsWith("@prodify.com")
     },
-    async jwt({ token, account }: any) {
-      if (account) {
-        token.accessToken = account.access_token
-        token.issuedAt = Date.now()
-        token.tenantId = process.env.AZURE_AD_TENANT_ID
-      }
-      return token
-    },
+   async jwt({ token, account }: any) {
+  if (account) {
+    // Store issuedAt only — never expose Graph token to client
+    token.issuedAt = Date.now()
+  }
+  return token
+},
     async session({ session, token }: any) {
-      session.issuedAt = token.issuedAt
-      return session
-    },
+  // Only expose safe fields to the client — no tokens
+  session.issuedAt = token.issuedAt
+  session.user = {
+    name: token.name,
+    email: token.email,
+    image: token.picture,
+  }
+  return session
   },
   events: {
     async signOut({ token }: any) {
