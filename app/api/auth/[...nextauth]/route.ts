@@ -16,8 +16,8 @@ const authOptions: AuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 8 * 60 * 60,      // 8 hours absolute max lifetime
-    updateAge: 30 * 60,        // extend session every 30 min if active
+    maxAge: 8 * 60 * 60,
+    updateAge: 30 * 60,
   },
   callbacks: {
     async signIn({ profile }: any) {
@@ -28,6 +28,7 @@ const authOptions: AuthOptions = {
       if (account) {
         token.accessToken = account.access_token
         token.issuedAt = Date.now()
+        token.tenantId = process.env.AZURE_AD_TENANT_ID
       }
       return token
     },
@@ -36,9 +37,16 @@ const authOptions: AuthOptions = {
       return session
     },
   },
+  events: {
+    async signOut({ token }: any) {
+      // After NextAuth clears its cookie, we also need to clear Microsoft session
+      // This is handled client-side via the logout page redirect
+    },
+  },
   pages: {
     signIn: "/login",
     error: "/login",
+    signOut: "/logout",
   },
 }
 
