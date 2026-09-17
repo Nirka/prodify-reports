@@ -14,26 +14,32 @@ const authOptions: AuthOptions = {
       },
     }),
   ],
+  session: {
+    strategy: "jwt",
+    maxAge: 8 * 60 * 60,      // 8 hours absolute max lifetime
+    updateAge: 30 * 60,        // extend session every 30 min if active
+  },
   callbacks: {
-    async signIn({ account, profile }: any) {
+    async signIn({ profile }: any) {
       const email = profile?.email || profile?.preferred_username || ""
       return email.endsWith("@prodify.com")
-    },
-    async session({ session, token }: any) {
-      return session
     },
     async jwt({ token, account }: any) {
       if (account) {
         token.accessToken = account.access_token
+        token.issuedAt = Date.now()
       }
       return token
+    },
+    async session({ session, token }: any) {
+      session.issuedAt = token.issuedAt
+      return session
     },
   },
   pages: {
     signIn: "/login",
     error: "/login",
   },
-  debug: true,
 }
 
 const handler = NextAuth(authOptions)
