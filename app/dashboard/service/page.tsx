@@ -172,7 +172,7 @@ export default function ServiceDashboard() {
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
-        signOut({ callbackUrl: "/logout" })}
+        signOut({ callbackUrl: "/logout" })
       }, IDLE_TIMEOUT_MS)
     }
     const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"]
